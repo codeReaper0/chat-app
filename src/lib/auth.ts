@@ -33,17 +33,20 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({token, user}) {
-      const dbUser = (await db.get(`user: ${token.id}`)) as User | null;
-      if (!dbUser) {
-        token.id = user!.id;
-        return token;
+      if (user) {
+        const dbUser = (await db.get(`user: ${token.id}`)) as User | null;
+        if (!dbUser) {
+          token.id = user!.id;
+          return token;
+        }
+        return {
+          id: dbUser.id,
+          name: dbUser.name,
+          email: dbUser.email,
+          image: dbUser.image,
+        };
       }
-      return {
-        id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        image: dbUser.image,
-      };
+      return token;
     },
     async session({session, token}) {
       if (token) {
@@ -54,6 +57,8 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    redirect,
+    redirect() {
+      return "/dashboard";
+    },
   },
 };
